@@ -14,10 +14,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.BeforeSuite;
+import ru.yandex.qatools.allure.annotations.Step;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.TimeZone;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.not;
@@ -39,7 +41,8 @@ public class BaseTest extends AbstractTestNGSpringContextTests {
 	ConfigurationResolver configurationResolver;
 
 	@BeforeSuite
-	public void subscribeUser() throws InterruptedException {
+	public void subscribeUser() {
+		TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
 		logger.info("Subscribing user " + userOfAccount.getUsername() + "to push notifications " +
 				"Url:" + PLAT01_EWS + userOfAccount.getAccountId() + "/subscriptions");
 		given()
@@ -50,8 +53,9 @@ public class BaseTest extends AbstractTestNGSpringContextTests {
 				.assertThat().statusCode(202);
 	}
 
+	@Step
 	void assertSlotIsBooked(int index) {
-		logger.info("Querying get-availability service for booked slot");
+		logger.info("Querying get-availability service for booked slot. Url: " + PLAT01_GA + userOfAccount.getAccountId() + "/" + userOfAccount.getUsername() + "/calendar/free-busy");
 
 		given()
 				.param("start", bounderyStartTime())

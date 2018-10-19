@@ -39,13 +39,6 @@ release {
     }
 }
 
-//sourceSets {
-//    tests {
-//        java.srcDir 'src/test/java'
-//        resources.srcDir 'src/test/resources'
-//    }
-//}
-
 afterReleaseBuild.dependsOn uploadArchives
 
 // 'uploadArchives' task provided by 'maven' plugin configured by shared gradle script.
@@ -81,7 +74,6 @@ bootRepackage  {
 }
 
 dependencies {
-
 	//spring-boot
 	compile group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: springBootVersion
 	compile group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: springBootVersion
@@ -122,8 +114,13 @@ dependencies {
 	testCompile group: 'org.assertj', name: 'assertj-core', version: '3.6.2'
 	testCompile group: 'org.mockito', name: 'mockito-core', version: '2.7.22'
     testCompile group: 'io.rest-assured', name: 'spring-mock-mvc', version: '3.0.2'
-    // https://mvnrepository.com/artifact/org.testng/testng
     testCompile group: 'org.testng', name: 'testng', version: '6.14.3'
+    testCompile "ru.yandex.qatools.allure:allure-testng-adaptor:${allureVersion}"
+
+}
+
+test {
+    useTestNG()
 }
 
 configurations {
