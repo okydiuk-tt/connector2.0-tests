@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: ews-notifications
+  cloud:
+    zookeeper:
+      enabled: false
+      config:
+        watcher:
+          enabled: false
+      discovery:
+        enabled: false
+
+---
+
+spring:
+  application:
+    name: ews-notifications
+  profiles: discovery
+  cloud:
+    zookeeper:
+      connect-string: ${SPRING_CLOUD_ZOOKEEPER_CONNECT_STRING:localhost:2181}
+      enabled: true
+      discovery:
+        enabled: true
+        root: /platform/services
+        metadata:
+          management:
+            port: ${management.port}
+      config:
+        enabled: true
+        root: timetrade/config
+        defaultContext: shared
