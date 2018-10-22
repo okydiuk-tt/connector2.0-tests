@@ -12,7 +12,6 @@ import com.timetrade.ews.notifications.configuration.EwsProperties.AccessType;
 import com.timetrade.ews.notifications.configuration.EwsProperties.ExchangeCredentials;
 import com.timetrade.ews.notifications.configurationprovider.model.EwsConfig.Endpoint;
 import com.timetrade.ews.notifications.configurationprovider.service.ConfigurationResolver;
-import com.timetrade.ews.notifications.model.PushSubscriptionMeta;
 import com.timetrade.ews.notifications.model.UserOfAccount;
 
 import microsoft.exchange.webservices.data.core.ExchangeService;
@@ -128,34 +127,34 @@ public class TTExchangeService extends ExchangeService {
 
         return result;
     }
-
-    public PushSubscriptionMeta subscribeToFreeBusyPushNotifications(String watermark)
-            throws Exception {
-
-        String callbackEndpoint = configurationResolver.resolveSubscriptionsProperties().getCallbackEndpoint();
-        if (callbackEndpoint == null) {
-            logger.error("No endpoint specified for callback for account: " + userOfAccount.getAccountId());
-            return null;
-        }
-
-        URI listenerUrl = URI.create(callbackEndpoint
-                                         .replace("{username}", userOfAccount.getUsername())
-                                         .replace("{accountId}", userOfAccount.getAccountId()));
-        int heartBeatInMins = configurationResolver.resolveSubscriptionsProperties().getHeartBeat() / 60;
-        logger.info("Listener-Url: {}, Heart-Beat: {} min", listenerUrl, heartBeatInMins);
-
-        PushSubscriptionMeta meta;
-        if (!configurationResolver.resolveSubscriptionsProperties().isDryRun()) {
-            meta = new PushSubscriptionMeta(subscribeToPushNotifications(FOLDERS_TO_SUB,
-                    listenerUrl, heartBeatInMins, watermark, EventType.FreeBusyChanged, EventType.Moved));
-        } else {
-            logger.info("Dry-run is ON");
-            meta = new PushSubscriptionMeta(java.util.UUID.randomUUID().toString(),
-                    String.valueOf(System.currentTimeMillis()));
-        }
-
-        return meta;
-    }
+//
+//    public PushSubscriptionMeta subscribeToFreeBusyPushNotifications(String watermark)
+//            throws Exception {
+//
+//        String callbackEndpoint = configurationResolver.resolveSubscriptionsProperties().getCallbackEndpoint();
+//        if (callbackEndpoint == null) {
+//            logger.error("No endpoint specified for callback for account: " + userOfAccount.getAccountId());
+//            return null;
+//        }
+//
+//        URI listenerUrl = URI.create(callbackEndpoint
+//                                         .replace("{username}", userOfAccount.getUsername())
+//                                         .replace("{accountId}", userOfAccount.getAccountId()));
+//        int heartBeatInMins = configurationResolver.resolveSubscriptionsProperties().getHeartBeat() / 60;
+//        logger.info("Listener-Url: {}, Heart-Beat: {} min", listenerUrl, heartBeatInMins);
+//
+//        PushSubscriptionMeta meta;
+//        if (!configurationResolver.resolveSubscriptionsProperties().isDryRun()) {
+//            meta = new PushSubscriptionMeta(subscribeToPushNotifications(FOLDERS_TO_SUB,
+//                    listenerUrl, heartBeatInMins, watermark, EventType.FreeBusyChanged, EventType.Moved));
+//        } else {
+//            logger.info("Dry-run is ON");
+//            meta = new PushSubscriptionMeta(java.util.UUID.randomUUID().toString(),
+//                    String.valueOf(System.currentTimeMillis()));
+//        }
+//
+//        return meta;
+//    }
 
     public UserOfAccount getUserOfAccount() {
         return userOfAccount;

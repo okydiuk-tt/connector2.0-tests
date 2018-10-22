@@ -1,4 +1,4 @@
-package com.timetrade.connector_2.config;
+package com.timetrade.ews.notifications.config;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

@@ -1,7 +1,6 @@
-package com.timetrade.connector_2;
+package com.timetrade.ews.notifications;
 
-import com.timetrade.connector_2.config.Config;
-import com.timetrade.ews.notifications.Application;
+import com.timetrade.ews.notifications.config.Config;
 import com.timetrade.ews.notifications.configurationprovider.service.ConfigurationResolver;
 import com.timetrade.ews.notifications.model.UserOfAccount;
 import io.restassured.http.ContentType;

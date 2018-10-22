@@ -24,29 +24,29 @@ public class EwsProperties {
 
     public static class SubscriptionsProperties {
         private boolean dryRun = false;
-        private SubscriptionRate rate;
+//        private SubscriptionRate rate;
         private ReattemptsPolicy reattempts;
         private ExchangeVersion ewsApiVersion;
         private Integer heartBeat;
         private String callbackEndpoint;
 
-        public static class SubscriptionRate {
-            private final int batchSize;
-            private final long delayMillis;
-            
-            public SubscriptionRate(int batchSize, long delayMillis) {
-                this.batchSize = batchSize;
-                this.delayMillis = delayMillis;
-            }
-            
-            public int getBatchSize() {
-                return batchSize;
-            }
-            
-            public long getDelayMillis() {
-                return delayMillis;
-            }
-        }
+//        public static class SubscriptionRate {
+//            private final int batchSize;
+//            private final long delayMillis;
+//
+//            public SubscriptionRate(int batchSize, long delayMillis) {
+//                this.batchSize = batchSize;
+//                this.delayMillis = delayMillis;
+//            }
+//
+//            public int getBatchSize() {
+//                return batchSize;
+//            }
+//
+//            public long getDelayMillis() {
+//                return delayMillis;
+//            }
+//        }
 
         public static class ReattemptsPolicy {
             private int maxTimes;
@@ -81,14 +81,6 @@ public class EwsProperties {
 
         public void setDryRun(boolean dryRun) {
             this.dryRun = dryRun;
-        }
-
-        public SubscriptionRate getRate() {
-            return rate;
-        }
-
-        public void setRate(SubscriptionRate rate) {
-            this.rate = rate;
         }
 
         public ReattemptsPolicy getReattempts() {
