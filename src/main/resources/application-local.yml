@@ -1,4 +1,0 @@
-redisDb:
-  host: localhost
-  port: 6379
-
