@@ -1,29 +1,10 @@
-buildscript {
-    ext {
-		springBootVersion = '1.5.4.RELEASE'
-    }
-
-    apply from: 'https://artifactrepo.ttops.net/artifactory/gradle-scripts-local/buildscript.repositories.gradle'
-
-    dependencies {
-    	classpath 'gradle.plugin.com.gorylenko.gradle-git-properties:gradle-git-properties:1.4.17'
-    	classpath 'io.spring.gradle:dependency-management-plugin:0.6.0.RELEASE'
-        classpath 'net.researchgate:gradle-release:2.6.0'
-        classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.2.1'
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
-        classpath "org.whitesource:whitesource-gradle-plugin:18.4.2"
-    }
+repositories {
+    mavenCentral()
 }
 
 apply plugin: 'eclipse'
 apply plugin: 'java'
 apply plugin: 'maven'
-apply plugin: 'com.gorylenko.gradle-git-properties'
-apply plugin: 'io.spring.dependency-management'
-apply plugin: 'net.researchgate.release'
-apply plugin: 'jacoco'
-apply plugin: 'org.springframework.boot'
-apply plugin: 'whitesource'
 
 group 'com.timetrade'
 version '1.0-SNAPSHOT'
@@ -31,30 +12,7 @@ version '1.0-SNAPSHOT'
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-release {
-    tagTemplate = 'release-${version}'
-    git {
-        requireBranch = ''
-        pushToRemote = 'origin'
-    }
-}
-
-afterReleaseBuild.dependsOn uploadArchives
-
-// 'uploadArchives' task provided by 'maven' plugin configured by shared gradle script.
-apply from: 'https://artifactrepo.ttops.net/artifactory/gradle-scripts-local/uploadArchives.gradle'
-
-// 'whitesource' task provided whitesource scan configured by Gradle script.
-apply from: 'https://artifactrepo.ttops.net/artifactory/gradle-scripts-local/whitesource.gradle'
-
-// Calling 'assemble' task which depends on 'bootRepackage' task to create executable JAR.
-// If 'assemble' task is not called, a non-executable JAR will be created.
-uploadArchives.dependsOn assemble
-
-apply from: 'https://artifactrepo.ttops.net/artifactory/gradle-scripts-local/repositories.gradle'
-
 ext {
-	springCloudVersion = '1.0.3.RELEASE'
     msEWSApiVersion = '2.0'
 }
 
@@ -62,17 +20,13 @@ dependencies {
     //ews api
     compile group: 'com.microsoft.ews-java-api', name: 'ews-java-api', version: msEWSApiVersion
 
-	//tt
-	compile group: 'com.timetrade.platform.commons', name: 'timetrade-api-creds', version: '1.1.9'
-
     //test
-    compile group: 'org.springframework.boot', name: 'spring-boot-starter-test'
+    compile group: 'org.slf4j', name:'slf4j-api', version: '1.7.2'
+    compile group: 'org.slf4j', name:'slf4j-log4j12', version: '1.7.2'
 	testCompile group: 'org.assertj', name: 'assertj-core', version: '3.6.2'
-	testCompile group: 'org.mockito', name: 'mockito-core', version: '2.7.22'
     testCompile group: 'io.rest-assured', name: 'spring-mock-mvc', version: '3.0.2'
     testCompile group: 'org.testng', name: 'testng', version: '6.14.3'
     testCompile "ru.yandex.qatools.allure:allure-testng-adaptor:${allureVersion}"
-
 }
 
 test {

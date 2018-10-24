@@ -48,27 +48,6 @@ public class EwsConfig implements Serializable {
         private String userid;
         private String password;
 
-        public Delegate() {
-        }
-
-        public Delegate(String userid, String password) {
-            this.userid = userid;
-            this.password = password;
-        }
-
-        public String getUserid() {
-            return userid;
-        }
-        public void setUserid(String userid) {
-            this.userid = userid;
-        }
-        public String getPassword() {
-            return password;
-        }
-        public void setPassword(String password) {
-            this.password = password;
-        }
-
         @Override
         public int hashCode() {
             return Objects.hash(serialVersionUID, userid, password);
@@ -87,29 +66,4 @@ public class EwsConfig implements Serializable {
             return Objects.equals(userid, del.userid) && Objects.equals(password, del.password);
         }
     }
-
-    public Endpoint getEndpoint() {
-        return endpoint;
-    }
-
-    public void setEndpoint(Endpoint endpoint) {
-        this.endpoint = endpoint;
-    }
-
-    public Set<Delegate> getDelegates() {
-        return delegates;
-    }
-
-    public void setDelegates(Set<Delegate> delegates) {
-        this.delegates = delegates;
-    }
-
-    public AccessType getAccessType() {
-        return accessType;
-    }
-
-    public void setAccessType(AccessType accessType) {
-        this.accessType = accessType;
-    }
-
 }

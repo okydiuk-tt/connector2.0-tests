@@ -1,0 +1,13 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+<suite name="Processing appointments functionality">
+    <test name="CRUD Appointments tests" parallel="methods" thread-count="1" preserve-order="false">
+        <groups>
+            <run>
+                <exclude name="excluded"/>
+            </run>
+        </groups>
+        <packages>
+            <package name="com.timetrade.connector2.qa"/>
+        </packages>
+    </test>
+</suite>

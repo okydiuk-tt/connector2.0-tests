@@ -36,7 +36,7 @@ public class CrudAppointmentsTest extends BaseTest {
         assertSlotIsFree(11);
 
         logger.info("Creating appointment with startTime " + calStart.getTime().toString() + "and endTime " + calEnd.getTime().toString());
-        TTExchangeService service = new TTExchangeService(userOfAccount, mockCR);
+        TTExchangeService service = new TTExchangeService(userOfAccount);
         Appointment appointment = new Appointment(service);
         try{
             appointment.setSubject("Dentist Appointment333");
@@ -45,14 +45,11 @@ public class CrudAppointmentsTest extends BaseTest {
             appointment.setStartTimeZone(new OlsonTimeZoneDefinition(TimeZone.getTimeZone("UTC")));
             appointment.setEnd(calEnd.getTime());
             appointment.save(SendInvitationsMode.SendToNone);
-            //waiting for processing appointment
-            Thread.sleep(5000);
 
             assertSlotIsBooked(11);
         }
         finally {
             appointment.delete(DeleteMode.HardDelete);
-            Thread.sleep(5000);
         }
     }
 
@@ -70,7 +67,7 @@ public class CrudAppointmentsTest extends BaseTest {
         assertSlotIsFree(11);
 
         logger.info("Creating appointment with startTime " + calStart.getTime().toString() + "and endTime " + calEnd.getTime().toString());
-        TTExchangeService service = new TTExchangeService(userOfAccount, mockCR);
+        TTExchangeService service = new TTExchangeService(userOfAccount);
         Appointment appointment = new Appointment(service);
         try{
             appointment.setSubject("Dentist Appointment333");
@@ -79,21 +76,16 @@ public class CrudAppointmentsTest extends BaseTest {
             appointment.setStartTimeZone(new OlsonTimeZoneDefinition(TimeZone.getTimeZone("UTC")));
             appointment.setEnd(calEnd.getTime());
             appointment.save(SendInvitationsMode.SendToNone);
-            //waiting for processing appointment
-            Thread.sleep(5000);
 
             assertSlotIsBooked(11);
 
             appointment.setLegacyFreeBusyStatus(LegacyFreeBusyStatus.Tentative);
             appointment.update(ConflictResolutionMode.AlwaysOverwrite);
-            //waiting for processing appointment
-            Thread.sleep(5000);
 
             assertSlotIsTentative(11);
         }
         finally {
             appointment.delete(DeleteMode.HardDelete);
-            Thread.sleep(5000);
         }
     }
 
@@ -111,7 +103,7 @@ public class CrudAppointmentsTest extends BaseTest {
         assertSlotIsFree(11);
 
         logger.info("Creating appointment with startTime " + calStart.getTime().toString() + "and endTime " + calEnd.getTime().toString());
-        TTExchangeService service = new TTExchangeService(userOfAccount, mockCR);
+        TTExchangeService service = new TTExchangeService(userOfAccount);
         Appointment appointment = new Appointment(service);
         try{
             appointment.setSubject("Dentist Appointment333");
@@ -120,8 +112,6 @@ public class CrudAppointmentsTest extends BaseTest {
             appointment.setStartTimeZone(new OlsonTimeZoneDefinition(TimeZone.getTimeZone("UTC")));
             appointment.setEnd(calEnd.getTime());
             appointment.save(SendInvitationsMode.SendToNone);
-            //waiting for processing appointment
-            Thread.sleep(5000);
 
             assertSlotIsBooked(11);
 
@@ -132,14 +122,11 @@ public class CrudAppointmentsTest extends BaseTest {
             appointment.setEnd(calEnd.getTime());
             appointment.update(ConflictResolutionMode.AlwaysOverwrite);
 
-            //waiting for processing appointment
-            Thread.sleep(5000);
-
             assertSlotIsBooked(12);
         }
         finally {
             appointment.delete(DeleteMode.HardDelete);
-            Thread.sleep(5000);
+            assertSlotIsFree(12);
         }
     }
 
@@ -157,7 +144,7 @@ public class CrudAppointmentsTest extends BaseTest {
         assertSlotIsFree(11);
 
         logger.info("Creating appointment with startTime " + calStart.getTime().toString() + "and endTime " + calEnd.getTime().toString());
-        TTExchangeService service = new TTExchangeService(userOfAccount, mockCR);
+        TTExchangeService service = new TTExchangeService(userOfAccount);
         Appointment appointment = new Appointment(service);
         try{
             appointment.setSubject("Dentist Appointment33");
@@ -166,14 +153,11 @@ public class CrudAppointmentsTest extends BaseTest {
             appointment.setStartTimeZone(new OlsonTimeZoneDefinition(TimeZone.getTimeZone("UTC")));
             appointment.setEnd(calEnd.getTime());
             appointment.save(SendInvitationsMode.SendToNone);
-            //waiting for processing appointment
-            Thread.sleep(5000);
 
             assertSlotIsBooked(11);
         }
         finally {
             appointment.delete(DeleteMode.HardDelete);
-            Thread.sleep(5000);
             assertSlotIsFree(11);
         }
     }

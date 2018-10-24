@@ -1,23 +1,14 @@
 package com.timetrade.connector2.qa;
 
 import com.timetrade.connector2.qa.config.Config;
-import com.timetrade.connector2.qa.configuration.EwsProperties;
-import com.timetrade.connector2.qa.configuration.EwsProperties.ExchangeCredentials;
-import com.timetrade.connector2.qa.configurationprovider.model.EwsConfig;
-import com.timetrade.connector2.qa.configurationprovider.service.ConfigurationResolver;
 import com.timetrade.connector2.qa.model.UserOfAccount;
 import io.restassured.http.ContentType;
-import microsoft.exchange.webservices.data.core.enumeration.misc.ExchangeVersion;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.cache.CacheManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.BeforeTest;
 import ru.yandex.qatools.allure.annotations.Step;
 
 import java.time.LocalDate;
@@ -26,16 +17,14 @@ import java.time.ZonedDateTime;
 import java.util.TimeZone;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.not;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertTrue;
 
 /**
  * Created by oleksandr.kydiuk on Oct, 2018
  */
 public class BaseTest {
 
-    private static final Log logger = LogFactory.getLog(BaseTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(BaseTest.class);
     private static final ZoneId UTC = ZoneId.of("UTC");
     private static final String PLAT01_GA = Config.properties.getProperty("ga");
     private static final String PLAT01_EWS = Config.properties.getProperty("ews");
@@ -44,17 +33,6 @@ public class BaseTest {
     private static final String testAccountId = Config.properties.getProperty("account");
 
     UserOfAccount userOfAccount = new UserOfAccount(testUsername, testAccountId);
-
-    @Mock
-    private ExchangeCredentials exchangeCreds;
-
-    @Mock
-    ConfigurationResolver mockCR;
-
-    @Mock
-    private CacheManager mockCM;
-
-    private EwsConfig.Endpoint endpoint = new EwsConfig.Endpoint();
 
     @BeforeSuite
     public void subscribeUser() throws InterruptedException {
@@ -67,70 +45,81 @@ public class BaseTest {
                 .post(PLAT01_EWS + userOfAccount.getAccountId() + "/subscriptions")
                 .then()
                 .assertThat().statusCode(202);
-        Thread.sleep(5000);
-    }
-
-    @BeforeTest
-    public void mockingConfigResolver() {
-        MockitoAnnotations.initMocks(this);
-
-        endpoint.setAutodiscover(false);
-        endpoint.setUrl("https://outlook.office365.com/EWS/Exchange.asmx");
-
-        when(mockCM.getCache(anyString())).thenReturn(null);
-        when(mockCR.resolveExchangeVersion()).thenReturn(ExchangeVersion.Exchange2010_SP2);
-        when(mockCR.resolveExchangeEndpoint(anyString())).thenReturn(endpoint);
-        exchangeCreds = new EwsProperties.ExchangeCredentials("impersonation@ttops.onmicrosoft.com", "T1metradeDEV", EwsProperties.AccessType.IMPERSONATION);
-        when(mockCR.resolveMasterUserPasswordAccess("app2devauto")).thenReturn(exchangeCreds);
+        Thread.sleep(3000);
     }
 
     @Step
-    void assertSlotIsBooked(int index) {
+    void assertSlotIsBooked(int index) throws InterruptedException {
         logger.info("Querying get-availability service for booked slot. Url: " + PLAT01_GA + userOfAccount.getAccountId() + "/" + userOfAccount.getUsername() + "/calendar/free-busy");
-
-        given()
-                .param("start", bounderyStartTime())
-                .param("end", bounderyEndTime())
-                .param("granularity", "60")
-                .get(PLAT01_GA + userOfAccount.getAccountId() + "/" + userOfAccount.getUsername() + "/calendar/free-busy")
-                .then()
-                .assertThat().statusCode(200)
-                .and()
-                .assertThat().contentType(ContentType.JSON)
-                .and()
-                .assertThat().body("freeBusyTime", isSlotBooked(index));
+        String response = "";
+        boolean result = false;
+        for (int i = 0; i < 10; i++) {
+            response = given()
+                    .param("start", bounderyStartTime())
+                    .param("end", bounderyEndTime())
+                    .param("granularity", "60")
+                    .get(PLAT01_GA + userOfAccount.getAccountId() + "/" + userOfAccount.getUsername() + "/calendar/free-busy")
+                    .then()
+                    .assertThat().statusCode(200)
+                    .and()
+                    .assertThat().contentType(ContentType.JSON)
+                    .extract().path("freeBusyTime");
+            result = response.charAt(index) == '2';
+            if (result) {
+                break;
+            }
+            Thread.sleep(1000);
+        }
+        assertTrue(result, "Slot by index of " + index + " should be booked. The response is - " + response);
     }
     @Step
-    void assertSlotIsTentative(int index) {
-        logger.info("Querying get-availability service for tentative slot");
-
-        given()
-                .param("start", bounderyStartTime())
-                .param("end", bounderyEndTime())
-                .param("granularity", "60")
-                .get(PLAT01_GA + userOfAccount.getAccountId() + "/" + userOfAccount.getUsername() + "/calendar/free-busy")
-                .then()
-                .assertThat().statusCode(200)
-                .and()
-                .assertThat().contentType(ContentType.JSON)
-                .and()
-                .assertThat().body("freeBusyTime", isSlotTentative(index));
+    void assertSlotIsTentative(int index) throws InterruptedException {
+        logger.info("Querying get-availability service for tentative slot. Url: " + PLAT01_GA + userOfAccount.getAccountId() + "/" + userOfAccount.getUsername() + "/calendar/free-busy");
+        String response = "";
+        boolean result = false;
+        for (int i = 0; i < 10; i++) {
+            response = given()
+                    .param("start", bounderyStartTime())
+                    .param("end", bounderyEndTime())
+                    .param("granularity", "60")
+                    .get(PLAT01_GA + userOfAccount.getAccountId() + "/" + userOfAccount.getUsername() + "/calendar/free-busy")
+                    .then()
+                    .assertThat().statusCode(200)
+                    .and()
+                    .assertThat().contentType(ContentType.JSON)
+                    .extract().path("freeBusyTime");
+            result = response.charAt(index) == '1';
+            if (result) {
+                break;
+            }
+            Thread.sleep(1000);
+        }
+        assertTrue(result, "Slot by index of " + index + " should be tentative. The response is - " + response);
     }
-    @Step
-    void assertSlotIsFree(int index) {
-        logger.info("Querying get-availability service if appointment is free. Url: " + PLAT01_GA + userOfAccount.getAccountId() + "/" + userOfAccount.getUsername() + "/calendar/free-busy");
 
-        given()
-                .param("start", bounderyStartTime())
-                .param("end", bounderyEndTime())
-                .param("granularity", "60")
-                .get(PLAT01_GA + userOfAccount.getAccountId() + "/" + userOfAccount.getUsername() + "/calendar/free-busy")
-                .then()
-                .assertThat().statusCode(200)
-                .and()
-                .assertThat().contentType(ContentType.JSON)
-                .and()
-                .assertThat().body("freeBusyTime", not(isSlotBooked(index)));
+    @Step
+    void assertSlotIsFree(int index) throws InterruptedException {
+        logger.info("Querying get-availability service for free slot. Url: " + PLAT01_GA + userOfAccount.getAccountId() + "/" + userOfAccount.getUsername() + "/calendar/free-busy");
+        String response = "";
+        boolean result = false;
+        for (int i = 0; i < 10; i++) {
+            response = given()
+                    .param("start", bounderyStartTime())
+                    .param("end", bounderyEndTime())
+                    .param("granularity", "60")
+                    .get(PLAT01_GA + userOfAccount.getAccountId() + "/" + userOfAccount.getUsername() + "/calendar/free-busy")
+                    .then()
+                    .assertThat().statusCode(200)
+                    .and()
+                    .assertThat().contentType(ContentType.JSON)
+                    .extract().path("freeBusyTime");
+            result = response.charAt(index) == '0';
+            if (result) {
+                break;
+            }
+            Thread.sleep(1000);
+        }
+        assertTrue(result, "Slot by index of " + index + " should be free. The status of slot is - " + response.charAt(index));
     }
 
     private String bounderyStartTime() {
@@ -147,7 +136,7 @@ public class BaseTest {
         return new TypeSafeMatcher<String>() {
             @Override
             public void describeTo(final Description description) {
-                description.appendText("Slot at index of " + index + " should be booked");
+                description.appendText("Slot by index of " + index + " should be booked");
             }
 
             @Override
@@ -161,7 +150,7 @@ public class BaseTest {
         return new TypeSafeMatcher<String>() {
             @Override
             public void describeTo(final Description description) {
-                description.appendText("Slot at index of " + index + " should be booked");
+                description.appendText("Slot by index of " + index + " should be tentative");
             }
 
             @Override

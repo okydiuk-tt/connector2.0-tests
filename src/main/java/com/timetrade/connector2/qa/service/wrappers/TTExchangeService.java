@@ -1,30 +1,18 @@
 package com.timetrade.connector2.qa.service.wrappers;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.timetrade.connector2.qa.configuration.EwsProperties;
 import com.timetrade.connector2.qa.configurationprovider.model.EwsConfig;
-import com.timetrade.connector2.qa.configurationprovider.service.ConfigurationResolver;
+import com.timetrade.connector2.qa.configurationprovider.model.EwsConfig.Endpoint;
+import com.timetrade.connector2.qa.model.UserOfAccount;
+import microsoft.exchange.webservices.data.core.ExchangeService;
+import microsoft.exchange.webservices.data.core.enumeration.misc.ConnectingIdType;
+import microsoft.exchange.webservices.data.core.enumeration.misc.ExchangeVersion;
+import microsoft.exchange.webservices.data.credential.WebCredentials;
+import microsoft.exchange.webservices.data.misc.ImpersonatedUserId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.timetrade.connector2.qa.model.UserOfAccount;
-
-import microsoft.exchange.webservices.data.core.ExchangeService;
-import microsoft.exchange.webservices.data.core.enumeration.misc.ConnectingIdType;
-import microsoft.exchange.webservices.data.core.enumeration.notification.EventType;
-import microsoft.exchange.webservices.data.core.enumeration.property.WellKnownFolderName;
-import microsoft.exchange.webservices.data.core.service.item.Appointment;
-import microsoft.exchange.webservices.data.credential.WebCredentials;
-import microsoft.exchange.webservices.data.misc.ImpersonatedUserId;
-import microsoft.exchange.webservices.data.notification.PushSubscription;
-import microsoft.exchange.webservices.data.property.complex.FolderId;
-import microsoft.exchange.webservices.data.property.complex.Mailbox;
-import microsoft.exchange.webservices.data.search.CalendarView;
-import microsoft.exchange.webservices.data.search.FindItemsResults;
+import java.net.URI;
 
 /**
  * Created by oleksandr.romakh on 5/24/2017.
@@ -32,21 +20,21 @@ import microsoft.exchange.webservices.data.search.FindItemsResults;
 public class TTExchangeService extends ExchangeService {
     private static final Logger logger = LoggerFactory.getLogger(TTExchangeService.class);
 
-    private static final List<FolderId> FOLDERS_TO_SUB =
-            Arrays.asList(new FolderId(WellKnownFolderName.Calendar), new FolderId(WellKnownFolderName.DeletedItems));
-
     private UserOfAccount userOfAccount;
     private EwsProperties.ExchangeCredentials exchangeCredentials;
-    private ConfigurationResolver configurationResolver;
+    private EwsConfig.Endpoint endpoint;
 
-    public TTExchangeService(UserOfAccount userOfAccount, ConfigurationResolver configurationResolver) {
-        super(configurationResolver.resolveExchangeVersion());
 
-        this.configurationResolver = configurationResolver;
+    public TTExchangeService(UserOfAccount userOfAccount) {
+        super(ExchangeVersion.Exchange2007_SP1);
+
         this.userOfAccount = userOfAccount;
-        this.exchangeCredentials = configurationResolver.resolveMasterUserPasswordAccess(userOfAccount.getAccountId());
+        this.exchangeCredentials = new EwsProperties.ExchangeCredentials("impersonation@ttops.onmicrosoft.com", "T1metradeDEV", EwsProperties.AccessType.IMPERSONATION);
 
-        EwsConfig.Endpoint endpoint = configurationResolver.resolveExchangeEndpoint(userOfAccount.getAccountId());
+        endpoint = new Endpoint();
+        endpoint.setAutodiscover(false);
+        endpoint.setUrl("https://outlook.office365.com/EWS/Exchange.asmx");
+
         if (endpoint.getAutodiscover()) {
             try {
                 this.autodiscoverUrl(userOfAccount.getUsername());
@@ -77,86 +65,5 @@ public class TTExchangeService extends ExchangeService {
         }
 
         return masterUserPasswordAccess;
-
     }
-
-    @Override
-    public PushSubscription subscribeToPushNotifications(Iterable<FolderId> folderIds, URI url, int frequency,
-            String waterMark, EventType... eventTypes) throws Exception {
-
-        Iterable<FolderId> resultFolderIds;
-        if (exchangeCredentials.getAccessType() == EwsProperties.AccessType.DELEGATION) {
-            List<FolderId> folders = new ArrayList<>();
-            for (FolderId folderId : folderIds) {
-                folders.add(new FolderId(folderId.getFolderName(), new Mailbox(userOfAccount.getUsername())));
-            }
-            resultFolderIds = folders;
-        } else {
-            resultFolderIds = folderIds;
-        }
-
-        try {
-            return super.subscribeToPushNotifications(resultFolderIds, url, frequency, waterMark, eventTypes);
-        } catch (Exception e) {
-            if (e.getMessage().contains("401") && exchangeCredentials.getAccessType() == EwsProperties.AccessType.IMPERSONATION) {
-                logger.error("ExchangeServerClient is badly configured or user doesn't have permission to impersonate accounts");
-            } else if ("The watermark used for creating this subscription was not found.".equals(e.getMessage())) {
-                logger.warn("Detected expired subscription waterMark for account: {}, waterMark: {}, doing resub",
-                        userOfAccount, waterMark);
-                return super.subscribeToPushNotifications(resultFolderIds, url, frequency, null, eventTypes);
-            } else {
-                logger.error(e.getMessage(), e);
-                logger.error("Failed to subscribe: {}", userOfAccount);
-            }
-            throw e;
-        }
-
-    }
-
-    @Override
-    public FindItemsResults<Appointment> findAppointments(WellKnownFolderName parentFolderName,
-            CalendarView calendarView) throws Exception {
-        FindItemsResults<Appointment> result;
-        if (exchangeCredentials.getAccessType() == EwsProperties.AccessType.IMPERSONATION) {
-            result = this.findAppointments(new FolderId(parentFolderName), calendarView);
-        } else {
-            result = this.findAppointments(
-                    new FolderId(parentFolderName, new Mailbox(userOfAccount.getUsername())), calendarView);
-        }
-
-        return result;
-    }
-//
-//    public PushSubscriptionMeta subscribeToFreeBusyPushNotifications(String watermark)
-//            throws Exception {
-//
-//        String callbackEndpoint = configurationResolver.resolveSubscriptionsProperties().getCallbackEndpoint();
-//        if (callbackEndpoint == null) {
-//            logger.error("No endpoint specified for callback for account: " + userOfAccount.getAccountId());
-//            return null;
-//        }
-//
-//        URI listenerUrl = URI.create(callbackEndpoint
-//                                         .replace("{username}", userOfAccount.getUsername())
-//                                         .replace("{accountId}", userOfAccount.getAccountId()));
-//        int heartBeatInMins = configurationResolver.resolveSubscriptionsProperties().getHeartBeat() / 60;
-//        logger.info("Listener-Url: {}, Heart-Beat: {} min", listenerUrl, heartBeatInMins);
-//
-//        PushSubscriptionMeta meta;
-//        if (!configurationResolver.resolveSubscriptionsProperties().isDryRun()) {
-//            meta = new PushSubscriptionMeta(subscribeToPushNotifications(FOLDERS_TO_SUB,
-//                    listenerUrl, heartBeatInMins, watermark, EventType.FreeBusyChanged, EventType.Moved));
-//        } else {
-//            logger.info("Dry-run is ON");
-//            meta = new PushSubscriptionMeta(java.util.UUID.randomUUID().toString(),
-//                    String.valueOf(System.currentTimeMillis()));
-//        }
-//
-//        return meta;
-//    }
-
-    public UserOfAccount getUserOfAccount() {
-        return userOfAccount;
-    }
-
 }
