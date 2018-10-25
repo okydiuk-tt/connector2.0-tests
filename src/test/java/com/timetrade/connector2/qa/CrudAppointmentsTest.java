@@ -10,8 +10,6 @@ import microsoft.exchange.webservices.data.property.complex.MessageBody;
 import microsoft.exchange.webservices.data.property.complex.time.OlsonTimeZoneDefinition;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.util.Calendar;
@@ -23,89 +21,144 @@ import java.util.TimeZone;
 public class CrudAppointmentsTest extends BaseTest {
 
     private static final Log logger = LogFactory.getLog(CrudAppointmentsTest.class);
-    private Appointment appointment;
-    private Calendar calStart;
-    private Calendar calEnd;
 
-    @BeforeMethod
-    public void setUpInitialAppointment() throws Exception {
-        calStart = Calendar.getInstance();
+    @Test
+    public void testCreateAppointment() throws Exception {
+
+        Calendar calStart = Calendar.getInstance();
         calStart.set(Calendar.HOUR_OF_DAY, 10);
         calStart.set(Calendar.MINUTE, 0);
 
-        calEnd = Calendar.getInstance();
+        Calendar calEnd = Calendar.getInstance();
         calEnd.set(Calendar.HOUR_OF_DAY, 10);
-        calEnd.set(Calendar.MINUTE, 29);
-        calEnd.set(Calendar.SECOND, 59);
+        calEnd.set(Calendar.MINUTE, 30);
 
         assertSlotIsFree(11);
 
         logger.info("Creating appointment with startTime " + calStart.getTime().toString() + "and endTime " + calEnd.getTime().toString());
-
         TTExchangeService service = new TTExchangeService(userOfAccount);
-        appointment = new Appointment(service);
-        appointment.setSubject("Dentist Appointment333");
-        appointment.setBody(new MessageBody("The appointment is with Dr. Smith."));
-        appointment.setStart(calStart.getTime());
-        appointment.setStartTimeZone(new OlsonTimeZoneDefinition(TimeZone.getTimeZone("UTC")));
-        appointment.setEnd(calEnd.getTime());
-        appointment.save(SendInvitationsMode.SendToNone);
-    }
+        Appointment appointment = new Appointment(service);
+        try{
+            appointment.setSubject("Dentist Appointment333");
+            appointment.setBody(new MessageBody("The appointment is with Dr. Smith."));
+            appointment.setStart(calStart.getTime());
+            appointment.setStartTimeZone(new OlsonTimeZoneDefinition(TimeZone.getTimeZone("UTC")));
+            appointment.setEnd(calEnd.getTime());
+            appointment.save(SendInvitationsMode.SendToNone);
 
-    @AfterMethod
-    public void tearDown(){
-        try {
+            assertSlotIsBooked(11);
+        }
+        finally {
             appointment.delete(DeleteMode.HardDelete);
-        } catch (Exception e) {
-            logger.info("Deleting appointment after test error. Message: " + e.getMessage());
         }
     }
 
     @Test
-    public void testCreateAppointment() throws InterruptedException {
-        assertSlotIsBooked(11);
-    }
-
-    @Test
     public void testUpdateAppointment() throws Exception {
-        assertSlotIsBooked(11);
 
-        appointment.setLegacyFreeBusyStatus(LegacyFreeBusyStatus.Tentative);
-        appointment.update(ConflictResolutionMode.AlwaysOverwrite);
+        Calendar calStart = Calendar.getInstance();
+        calStart.set(Calendar.HOUR_OF_DAY, 10);
+        calStart.set(Calendar.MINUTE, 0);
 
-        assertSlotIsTentative(11);
+        Calendar calEnd = Calendar.getInstance();
+        calEnd.set(Calendar.HOUR_OF_DAY, 10);
+        calEnd.set(Calendar.MINUTE, 30);
 
+        assertSlotIsFree(11);
+
+        logger.info("Creating appointment with startTime " + calStart.getTime().toString() + "and endTime " + calEnd.getTime().toString());
+        TTExchangeService service = new TTExchangeService(userOfAccount);
+        Appointment appointment = new Appointment(service);
+        try{
+            appointment.setSubject("Dentist Appointment333");
+            appointment.setBody(new MessageBody("The appointment is with Dr. Smith."));
+            appointment.setStart(calStart.getTime());
+            appointment.setStartTimeZone(new OlsonTimeZoneDefinition(TimeZone.getTimeZone("UTC")));
+            appointment.setEnd(calEnd.getTime());
+            appointment.save(SendInvitationsMode.SendToNone);
+
+            assertSlotIsBooked(11);
+
+            appointment.setLegacyFreeBusyStatus(LegacyFreeBusyStatus.Tentative);
+            appointment.update(ConflictResolutionMode.AlwaysOverwrite);
+
+            assertSlotIsTentative(11);
+        }
+        finally {
+            appointment.delete(DeleteMode.HardDelete);
+        }
     }
 
     @Test
     public void testRescheduleAppointment() throws Exception {
-        assertSlotIsBooked(11);
 
-        //shifting appointment by 1 hour
-        calStart.add(Calendar.HOUR, 1);
-        calEnd.add(Calendar.HOUR, 1);
-        appointment.setStart(calStart.getTime());
-        appointment.setEnd(calEnd.getTime());
-        appointment.update(ConflictResolutionMode.AlwaysOverwrite);
+        Calendar calStart = Calendar.getInstance();
+        calStart.set(Calendar.HOUR_OF_DAY, 10);
+        calStart.set(Calendar.MINUTE, 0);
 
-        assertSlotIsBooked(12);
+        Calendar calEnd = Calendar.getInstance();
+        calEnd.set(Calendar.HOUR_OF_DAY, 10);
+        calEnd.set(Calendar.MINUTE, 30);
 
-        //shifting appointment backwards
-        calStart.add(Calendar.HOUR, -1);
-        calEnd.add(Calendar.HOUR, -1);
-        appointment.setStart(calStart.getTime());
-        appointment.setEnd(calEnd.getTime());
-        appointment.update(ConflictResolutionMode.AlwaysOverwrite);
+        assertSlotIsFree(11);
 
-        assertSlotIsBooked(11);
+        logger.info("Creating appointment with startTime " + calStart.getTime().toString() + "and endTime " + calEnd.getTime().toString());
+        TTExchangeService service = new TTExchangeService(userOfAccount);
+        Appointment appointment = new Appointment(service);
+        try{
+            appointment.setSubject("Dentist Appointment333");
+            appointment.setBody(new MessageBody("The appointment is with Dr. Smith."));
+            appointment.setStart(calStart.getTime());
+            appointment.setStartTimeZone(new OlsonTimeZoneDefinition(TimeZone.getTimeZone("UTC")));
+            appointment.setEnd(calEnd.getTime());
+            appointment.save(SendInvitationsMode.SendToNone);
+
+            assertSlotIsBooked(11);
+
+            //shifting appointment by 1 hour
+            calStart.add(Calendar.HOUR, 1);
+            calEnd.add(Calendar.HOUR, 1);
+            appointment.setStart(calStart.getTime());
+            appointment.setEnd(calEnd.getTime());
+            appointment.update(ConflictResolutionMode.AlwaysOverwrite);
+
+            assertSlotIsBooked(12);
+        }
+        finally {
+            appointment.delete(DeleteMode.HardDelete);
+            assertSlotIsFree(12);
+        }
     }
 
     @Test
     public void testDeleteAppointment() throws Exception {
-        assertSlotIsBooked(11);
 
-        appointment.delete(DeleteMode.SoftDelete);
+        Calendar calStart = Calendar.getInstance();
+        calStart.set(Calendar.HOUR_OF_DAY, 10);
+        calStart.set(Calendar.MINUTE, 0);
+
+        Calendar calEnd = Calendar.getInstance();
+        calEnd.set(Calendar.HOUR_OF_DAY, 10);
+        calEnd.set(Calendar.MINUTE, 30);
 
         assertSlotIsFree(11);
+
+        logger.info("Creating appointment with startTime " + calStart.getTime().toString() + "and endTime " + calEnd.getTime().toString());
+        TTExchangeService service = new TTExchangeService(userOfAccount);
+        Appointment appointment = new Appointment(service);
+        try{
+            appointment.setSubject("Dentist Appointment33");
+            appointment.setBody(new MessageBody("The appointment is with Dr. Smith."));
+            appointment.setStart(calStart.getTime());
+            appointment.setStartTimeZone(new OlsonTimeZoneDefinition(TimeZone.getTimeZone("UTC")));
+            appointment.setEnd(calEnd.getTime());
+            appointment.save(SendInvitationsMode.SendToNone);
+
+            assertSlotIsBooked(11);
+        }
+        finally {
+            appointment.delete(DeleteMode.HardDelete);
+            assertSlotIsFree(11);
+        }
     }
 }

@@ -37,7 +37,7 @@ public class BaseTest {
     @BeforeSuite
     public void subscribeUser() throws InterruptedException {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
-        logger.info("Subscribing user " + userOfAccount.getUsername() + " to push notifications " +
+        logger.info("Subscribing user " + userOfAccount.getUsername() + "to push notifications " +
                 "Url:" + PLAT01_EWS + userOfAccount.getAccountId() + "/subscriptions");
         given()
                 .contentType(ContentType.JSON)
@@ -70,9 +70,8 @@ public class BaseTest {
             }
             Thread.sleep(1000);
         }
-        assertTrue(result, "Slot by index of " + index + " should be booked. The status of slot is - " + response.charAt(index) + " The response is - " + response);
+        assertTrue(result, "Slot by index of " + index + " should be booked. The response is - " + response);
     }
-
     @Step
     void assertSlotIsTentative(int index) throws InterruptedException {
         logger.info("Querying get-availability service for tentative slot. Url: " + PLAT01_GA + userOfAccount.getAccountId() + "/" + userOfAccount.getUsername() + "/calendar/free-busy");
@@ -95,7 +94,7 @@ public class BaseTest {
             }
             Thread.sleep(1000);
         }
-        assertTrue(result, "Slot by index of " + index + " should be tentative. The status of slot is - " + response.charAt(index) + " The response is - " + response);
+        assertTrue(result, "Slot by index of " + index + " should be tentative. The response is - " + response);
     }
 
     @Step
@@ -120,32 +119,7 @@ public class BaseTest {
             }
             Thread.sleep(1000);
         }
-        assertTrue(result, "Slot by index of " + index + " should be free. The status of slot is - " + response.charAt(index) + " The response is - " + response);
-    }
-
-    @Step
-    void assertSlotsAreBooked(int start, int end) throws InterruptedException {
-        logger.info("Querying get-availability service for booked slots. Url: " + PLAT01_GA + userOfAccount.getAccountId() + "/" + userOfAccount.getUsername() + "/calendar/free-busy");
-        String response = "";
-        boolean result = false;
-        for (int i = 0; i < 10; i++) {
-            response = given()
-                    .param("start", bounderyStartTime())
-                    .param("end", bounderyEndTime())
-                    .param("granularity", "60")
-                    .get(PLAT01_GA + userOfAccount.getAccountId() + "/" + userOfAccount.getUsername() + "/calendar/free-busy")
-                    .then()
-                    .assertThat().statusCode(200)
-                    .and()
-                    .assertThat().contentType(ContentType.JSON)
-                    .extract().path("freeBusyTime");
-            result = response.substring(start, end).equals("2222222222");
-            if (result) {
-                break;
-            }
-            Thread.sleep(1000);
-        }
-        assertTrue(result, "Period by indexes from " + start + " till " + end + "should be booked. The status of slot is - " + response.substring(start, end) + "The response is - " + response);
+        assertTrue(result, "Slot by index of " + index + " should be free. The status of slot is - " + response.charAt(index));
     }
 
     private String bounderyStartTime() {
