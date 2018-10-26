@@ -41,5 +41,8 @@ test.doFirst {
 }
 
 test {
-    useTestNG()
+    useTestNG() {
+        // runlist to executed. path is relative to current folder
+        suites 'src/test/resources/suites/crud_restapi_tests.xml'
+    }
 }
