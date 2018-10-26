@@ -14,6 +14,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import ru.yandex.qatools.allure.annotations.Description;
+import ru.yandex.qatools.allure.annotations.Step;
 import ru.yandex.qatools.allure.annotations.Title;
 
 import java.util.Calendar;
@@ -30,6 +31,7 @@ public class CrudAppointmentsTest extends BaseTest {
     private Calendar calStart;
     private Calendar calEnd;
 
+    @Step
     @BeforeMethod
     public void setUpInitialAppointment() throws Exception {
         calStart = Calendar.getInstance();
@@ -55,10 +57,12 @@ public class CrudAppointmentsTest extends BaseTest {
         appointment.save(SendInvitationsMode.SendToNone);
     }
 
+    @Step
     @AfterMethod
     public void tearDown(){
         try {
             appointment.delete(DeleteMode.HardDelete);
+            assertSlotIsFree(11);
         } catch (Exception e) {
             logger.info("Deleting appointment after test error. Message: " + e.getMessage());
         }
