@@ -15,6 +15,7 @@ import microsoft.exchange.webservices.data.property.complex.MessageBody;
 import microsoft.exchange.webservices.data.property.complex.time.OlsonTimeZoneDefinition;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ import java.util.TimeZone;
 /**
  * Created by oleksandr.kydiuk on Oct, 2018
  */
+@Ignore
 public class CreateAppointmentsInBatchTest extends BaseTest {
 
     private static final Log logger = LogFactory.getLog(CreateAppointmentsInBatchTest.class);

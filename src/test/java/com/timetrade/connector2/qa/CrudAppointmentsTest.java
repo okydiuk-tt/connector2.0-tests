@@ -13,6 +13,8 @@ import org.apache.commons.logging.LogFactory;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import ru.yandex.qatools.allure.annotations.Description;
+import ru.yandex.qatools.allure.annotations.Title;
 
 import java.util.Calendar;
 import java.util.TimeZone;
@@ -20,6 +22,7 @@ import java.util.TimeZone;
 /**
  * Created by oleksandr.kydiuk on Oct, 2018
  */
+@Description("CRUD Appointments Tests")
 public class CrudAppointmentsTest extends BaseTest {
 
     private static final Log logger = LogFactory.getLog(CrudAppointmentsTest.class);
@@ -61,11 +64,13 @@ public class CrudAppointmentsTest extends BaseTest {
         }
     }
 
+    @Title("Create Appointment")
     @Test
     public void testCreateAppointment() throws InterruptedException {
         assertSlotIsBooked(11);
     }
 
+    @Title("Update Appointment")
     @Test
     public void testUpdateAppointment() throws Exception {
         assertSlotIsBooked(11);
@@ -77,6 +82,7 @@ public class CrudAppointmentsTest extends BaseTest {
 
     }
 
+    @Title("Reschedule Appointment")
     @Test
     public void testRescheduleAppointment() throws Exception {
         assertSlotIsBooked(11);
@@ -100,6 +106,7 @@ public class CrudAppointmentsTest extends BaseTest {
         assertSlotIsBooked(11);
     }
 
+    @Title("Delete Appointment")
     @Test
     public void testDeleteAppointment() throws Exception {
         assertSlotIsBooked(11);

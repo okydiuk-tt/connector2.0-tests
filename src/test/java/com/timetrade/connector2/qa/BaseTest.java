@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.BeforeSuite;
 import ru.yandex.qatools.allure.annotations.Step;
+import ru.yandex.qatools.allure.annotations.Title;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -31,6 +32,7 @@ public class BaseTest {
 
     UserOfAccount userOfAccount = new UserOfAccount(testUsername, testAccountId);
 
+    @Step
     @BeforeSuite
     public void subscribeUser() throws InterruptedException {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
