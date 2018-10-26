@@ -26,7 +26,6 @@ import java.util.TimeZone;
 /**
  * Created by oleksandr.kydiuk on Oct, 2018
  */
-@Ignore
 public class CreateAppointmentsInBatchTest extends BaseTest {
 
     private static final Log logger = LogFactory.getLog(CreateAppointmentsInBatchTest.class);
