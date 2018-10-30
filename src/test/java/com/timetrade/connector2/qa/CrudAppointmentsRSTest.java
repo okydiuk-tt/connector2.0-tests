@@ -62,6 +62,7 @@ public class CrudAppointmentsRSTest extends BaseTest {
         try {
             appointment.delete(DeleteMode.HardDelete);
             assertSlotIsFree(11);
+            Thread.sleep(3000);
         } catch (Exception e) {
             logger.info("Deleting appointment after test error. Message: " + e.getMessage());
         }

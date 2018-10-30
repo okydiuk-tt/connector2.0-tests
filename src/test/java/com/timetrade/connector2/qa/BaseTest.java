@@ -30,7 +30,7 @@ public class BaseTest {
     private static final ZoneId UTC = ZoneId.of("UTC");
     private static final String PLAT01_GA = Config.properties.getProperty("ga");
     private static final String PLAT01_EWS = Config.properties.getProperty("ews");
-    static final String PLAT01_RS = Config.properties.getProperty("rs");
+    private static final String PLAT01_RS = Config.properties.getProperty("rs");
 
     private static final String testUsername = Config.properties.getProperty("user");
     private static final String testAccountId = Config.properties.getProperty("account");
@@ -192,7 +192,7 @@ public class BaseTest {
         String timeStart = calStart.getTime().toInstant().toString();
         String timeEnd = calEnd.getTime().toInstant().toString();
 
-        assertThat("There response length should be - " + index + ", but it's = " + list.size(), list.size(), is(equalTo(index)));
+        assertThat("There response length should be - " + index + ", but it's - " + list.size(), list.size(), is(equalTo(index)));
         assertThat("The event has wrong eventType", ((HashMap) list.get(index - 1)).get("eventType"), is(equalTo(eventType)));
         assertThat("The event has wrong status", ((HashMap) list.get(index - 1)).get("status"), is(equalTo(status)));
         assertThat("The event has wrong username", ((HashMap) list.get(index - 1)).get("resource"), is(equalTo(userOfAccount.getUsername())));
