@@ -25,7 +25,7 @@ import java.util.TimeZone;
  */
 public class CrudAppointmentsRSTest extends BaseTest {
 
-    private static final Log logger = LogFactory.getLog(CrudAppointmentsTest.class);
+    private static final Log logger = LogFactory.getLog(CrudAppointmentsRSTest.class);
     private Appointment appointment;
     private Calendar calStart;
     private Calendar calEnd;
@@ -70,24 +70,24 @@ public class CrudAppointmentsRSTest extends BaseTest {
     @Title("Create Appointment RS Test")
     @Test
     public void testCreateAppointmentRS() throws ServiceLocalException, InterruptedException {
-        assertEventCreatedInRS(appointment, 1, "CREATE_EVENT", "BUSY", calStart, calEnd);
+        assertEventCreatedInRS(appointment.getId().getUniqueId(), 1, "CREATE_EVENT", "BUSY", calStart, calEnd);
     }
 
     @Title("Update Appointment RS Test")
     @Test
     public void testUpdateAppointmentRS() throws Exception {
-        assertEventCreatedInRS(appointment, 1, "CREATE_EVENT", "BUSY", calStart, calEnd);
+        assertEventCreatedInRS(appointment.getId().getUniqueId(), 1, "CREATE_EVENT", "BUSY", calStart, calEnd);
 
         appointment.setLegacyFreeBusyStatus(LegacyFreeBusyStatus.Tentative);
         appointment.update(ConflictResolutionMode.AlwaysOverwrite);
 
-        assertEventCreatedInRS(appointment, 2, "UPDATE_EVENT", "TENT", calStart, calEnd);
+        assertEventCreatedInRS(appointment.getId().getUniqueId(), 2, "UPDATE_EVENT", "TENT", calStart, calEnd);
     }
 
     @Title("Reschedule Appointment RS Test")
     @Test
     public void testRescheduleAppointmentRS() throws Exception {
-        assertEventCreatedInRS(appointment, 1, "CREATE_EVENT", "BUSY", calStart, calEnd);
+        assertEventCreatedInRS(appointment.getId().getUniqueId(), 1, "CREATE_EVENT", "BUSY", calStart, calEnd);
 
         //shifting appointment by 1 hour
         calStart.add(Calendar.HOUR, 1);
@@ -96,16 +96,16 @@ public class CrudAppointmentsRSTest extends BaseTest {
         appointment.setEnd(calEnd.getTime());
         appointment.update(ConflictResolutionMode.AlwaysOverwrite);
 
-        assertEventCreatedInRS(appointment, 2, "MOVE_EVENT", "BUSY", calStart, calEnd);
+        assertEventCreatedInRS(appointment.getId().getUniqueId(), 2, "MOVE_EVENT", "BUSY", calStart, calEnd);
     }
 
     @Title("Delete Appointment RS Test")
     @Test
     public void testDeleteAppointmentRS() throws Exception {
-        assertEventCreatedInRS(appointment, 1, "CREATE_EVENT", "BUSY", calStart, calEnd);
+        assertEventCreatedInRS(appointment.getId().getUniqueId(), 1, "CREATE_EVENT", "BUSY", calStart, calEnd);
 
         appointment.delete(DeleteMode.SoftDelete);
 
-        assertEventCreatedInRS(appointment, 2, "DELETE_EVENT", "BUSY", calStart, calEnd);
+        assertEventCreatedInRS(appointment.getId().getUniqueId(), 2, "DELETE_EVENT", "BUSY", calStart, calEnd);
     }
 }
