@@ -1,6 +1,6 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 <suite name="Connector-2.0 API Tests">
-    <test name="CRUD Appointments Tests" parallel="methods" thread-count="1" preserve-order="false">
+    <test name="CRUD Appointments GA Tests" parallel="methods" thread-count="1" preserve-order="false">
         <groups>
             <run>
                 <exclude name="excluded"/>
@@ -8,6 +8,17 @@
         </groups>
         <classes>
             <class name="com.timetrade.connector2.qa.CrudAppointmentsTest"/>
+        </classes>
+    </test>
+
+    <test name="CRUD Appointments RS Tests" parallel="methods" thread-count="1" preserve-order="false">
+        <groups>
+            <run>
+                <exclude name="excluded"/>
+            </run>
+        </groups>
+        <classes>
+            <class name="com.timetrade.connector2.qa.CrudAppointmentsRSTest"/>
         </classes>
     </test>
 

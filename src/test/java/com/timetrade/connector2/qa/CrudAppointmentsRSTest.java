@@ -5,6 +5,7 @@ import microsoft.exchange.webservices.data.core.enumeration.property.LegacyFreeB
 import microsoft.exchange.webservices.data.core.enumeration.service.ConflictResolutionMode;
 import microsoft.exchange.webservices.data.core.enumeration.service.DeleteMode;
 import microsoft.exchange.webservices.data.core.enumeration.service.SendInvitationsMode;
+import microsoft.exchange.webservices.data.core.exception.service.local.ServiceLocalException;
 import microsoft.exchange.webservices.data.core.service.item.Appointment;
 import microsoft.exchange.webservices.data.property.complex.MessageBody;
 import microsoft.exchange.webservices.data.property.complex.time.OlsonTimeZoneDefinition;
@@ -22,7 +23,7 @@ import java.util.TimeZone;
 /**
  * Created by oleksandr.kydiuk on Oct, 2018
  */
-public class CrudAppointmentsTest extends BaseTest {
+public class CrudAppointmentsRSTest extends BaseTest {
 
     private static final Log logger = LogFactory.getLog(CrudAppointmentsTest.class);
     private Appointment appointment;
@@ -47,7 +48,7 @@ public class CrudAppointmentsTest extends BaseTest {
 
         TTExchangeService service = new TTExchangeService(userOfAccount);
         appointment = new Appointment(service);
-        appointment.setSubject("Dentist Appointment to GA 333");
+        appointment.setSubject("Dentist Appointment to RS 333");
         appointment.setBody(new MessageBody("The appointment is with Dr. Smith."));
         appointment.setStart(calStart.getTime());
         appointment.setStartTimeZone(new OlsonTimeZoneDefinition(TimeZone.getTimeZone("UTC")));
@@ -57,7 +58,7 @@ public class CrudAppointmentsTest extends BaseTest {
 
     @Step
     @AfterMethod
-    public void tearDown(){
+    public void tearDown() {
         try {
             appointment.delete(DeleteMode.HardDelete);
             assertSlotIsFree(11);
@@ -66,28 +67,27 @@ public class CrudAppointmentsTest extends BaseTest {
         }
     }
 
-    @Title("Create Appointment GA Test")
+    @Title("Create Appointment RS Test")
     @Test
-    public void testCreateAppointment() throws InterruptedException {
-        assertSlotIsBooked(11);
+    public void testCreateAppointmentRS() throws ServiceLocalException, InterruptedException {
+        assertEventCreatedInRS(appointment, 1, "CREATE_EVENT", "BUSY", calStart, calEnd);
     }
 
-    @Title("Update Appointment GA Test")
+    @Title("Update Appointment RS Test")
     @Test
-    public void testUpdateAppointment() throws Exception {
-        assertSlotIsBooked(11);
+    public void testUpdateAppointmentRS() throws Exception {
+        assertEventCreatedInRS(appointment, 1, "CREATE_EVENT", "BUSY", calStart, calEnd);
 
         appointment.setLegacyFreeBusyStatus(LegacyFreeBusyStatus.Tentative);
         appointment.update(ConflictResolutionMode.AlwaysOverwrite);
 
-        assertSlotIsTentative(11);
-
+        assertEventCreatedInRS(appointment, 2, "UPDATE_EVENT", "TENT", calStart, calEnd);
     }
 
-    @Title("Reschedule Appointment GA Test")
+    @Title("Reschedule Appointment RS Test")
     @Test
-    public void testRescheduleAppointment() throws Exception {
-        assertSlotIsBooked(11);
+    public void testRescheduleAppointmentRS() throws Exception {
+        assertEventCreatedInRS(appointment, 1, "CREATE_EVENT", "BUSY", calStart, calEnd);
 
         //shifting appointment by 1 hour
         calStart.add(Calendar.HOUR, 1);
@@ -96,25 +96,16 @@ public class CrudAppointmentsTest extends BaseTest {
         appointment.setEnd(calEnd.getTime());
         appointment.update(ConflictResolutionMode.AlwaysOverwrite);
 
-        assertSlotIsBooked(12);
-
-        //shifting appointment backwards
-        calStart.add(Calendar.HOUR, -1);
-        calEnd.add(Calendar.HOUR, -1);
-        appointment.setStart(calStart.getTime());
-        appointment.setEnd(calEnd.getTime());
-        appointment.update(ConflictResolutionMode.AlwaysOverwrite);
-
-        assertSlotIsBooked(11);
+        assertEventCreatedInRS(appointment, 2, "MOVE_EVENT", "BUSY", calStart, calEnd);
     }
 
-    @Title("Delete Appointment GA Test")
+    @Title("Delete Appointment RS Test")
     @Test
-    public void testDeleteAppointment() throws Exception {
-        assertSlotIsBooked(11);
+    public void testDeleteAppointmentRS() throws Exception {
+        assertEventCreatedInRS(appointment, 1, "CREATE_EVENT", "BUSY", calStart, calEnd);
 
         appointment.delete(DeleteMode.SoftDelete);
 
-        assertSlotIsFree(11);
+        assertEventCreatedInRS(appointment, 2, "DELETE_EVENT", "BUSY", calStart, calEnd);
     }
 }
