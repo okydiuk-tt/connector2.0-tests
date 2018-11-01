@@ -15,7 +15,6 @@ import microsoft.exchange.webservices.data.property.complex.MessageBody;
 import microsoft.exchange.webservices.data.property.complex.time.OlsonTimeZoneDefinition;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 import ru.yandex.qatools.allure.annotations.Title;
 

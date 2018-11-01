@@ -197,12 +197,16 @@ public class BaseTest {
         }
 
         assertThat("There response length should be - " + index + ", but it's - " + list.size(), list.size(), is(equalTo(index)));
-        assertThat("The event has wrong eventType", ((HashMap) list.get(index - 1)).get("eventType"), is(equalTo(eventType)));
-        assertThat("The event has wrong status", ((HashMap) list.get(index - 1)).get("status"), is(equalTo(status)));
-        assertThat("The event has wrong username", ((HashMap) list.get(index - 1)).get("resource"), is(equalTo(userOfAccount.getUsername())));
-        assertThat("The event has wrong accountId", ((HashMap) list.get(index - 1)).get("licensee"), is(equalTo(userOfAccount.getAccountId())));
-        assertTrue(((String) ((HashMap) list.get(index - 1)).get("startTime")).contains(calStart.substring(0, 18)), "The event has wrong startTime");
-        assertTrue(((String) ((HashMap) list.get(index - 1)).get("endTime")).contains(calEnd.substring(0, 18)), "The event has wrong startTime");
+
+        HashMap resultsMap = (HashMap) list.get(index - 1);
+        assertThat("The event has wrong eventType", resultsMap.get("eventType"), is(equalTo(eventType)));
+        assertThat("The event has wrong status", resultsMap.get("status"), is(equalTo(status)));
+        assertThat("The event has wrong username", resultsMap.get("resource"), is(equalTo(userOfAccount.getUsername())));
+        assertThat("The event has wrong accountId", resultsMap.get("licensee"), is(equalTo(userOfAccount.getAccountId())));
+        assertTrue(((String) resultsMap.get("startTime")).contains(calStart.substring(0, 18)),
+                "The event has wrong startTime. It should be - " + calStart.substring(0, 18) + ". But it's - " + resultsMap.get("startTime"));
+        assertTrue(((String) resultsMap.get("endTime")).contains(calEnd.substring(0, 18)),
+                "The event has wrong startTime. It should be - " + calEnd.substring(0, 18) + ". But it's - " + resultsMap.get("endTime"));
     }
 
     String bounderyStartTime() {
