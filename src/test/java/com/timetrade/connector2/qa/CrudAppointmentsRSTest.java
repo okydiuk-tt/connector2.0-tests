@@ -29,6 +29,8 @@ public class CrudAppointmentsRSTest extends BaseTest {
     private Appointment appointment;
     private Calendar calStart;
     private Calendar calEnd;
+    private String calStartString;
+    private String calEndString;
 
     @Step
     @BeforeMethod
@@ -42,9 +44,12 @@ public class CrudAppointmentsRSTest extends BaseTest {
         calEnd.set(Calendar.MINUTE, 29);
         calEnd.set(Calendar.SECOND, 59);
 
+        calStartString = calStart.getTime().toInstant().toString();
+        calEndString = calEnd.getTime().toInstant().toString();
+
         assertSlotIsFree(11);
 
-        logger.info("Creating appointment with startTime " + calStart.getTime().toString() + "and endTime " + calEnd.getTime().toString());
+        logger.info("Creating appointment with startTime " + calStartString + "and endTime " + calEndString);
 
         TTExchangeService service = new TTExchangeService(userOfAccount);
         appointment = new Appointment(service);
@@ -62,7 +67,7 @@ public class CrudAppointmentsRSTest extends BaseTest {
         try {
             appointment.delete(DeleteMode.HardDelete);
             assertSlotIsFree(11);
-            Thread.sleep(3000);
+            Thread.sleep(2000);
         } catch (Exception e) {
             logger.info("Deleting appointment after test error. Message: " + e.getMessage());
         }
@@ -71,24 +76,24 @@ public class CrudAppointmentsRSTest extends BaseTest {
     @Title("Create Appointment RS Test")
     @Test
     public void testCreateAppointmentRS() throws ServiceLocalException, InterruptedException {
-        assertEventCreatedInRS(appointment.getId().getUniqueId(), 1, "CREATE_EVENT", "BUSY", calStart, calEnd);
+        assertEventCreatedInRS(appointment.getId().getUniqueId(), 1, "CREATE_EVENT", "BUSY", calStartString, calEndString);
     }
 
     @Title("Update Appointment RS Test")
     @Test
     public void testUpdateAppointmentRS() throws Exception {
-        assertEventCreatedInRS(appointment.getId().getUniqueId(), 1, "CREATE_EVENT", "BUSY", calStart, calEnd);
+        assertEventCreatedInRS(appointment.getId().getUniqueId(), 1, "CREATE_EVENT", "BUSY", calStartString, calEndString);
 
         appointment.setLegacyFreeBusyStatus(LegacyFreeBusyStatus.Tentative);
         appointment.update(ConflictResolutionMode.AlwaysOverwrite);
 
-        assertEventCreatedInRS(appointment.getId().getUniqueId(), 2, "UPDATE_EVENT", "TENT", calStart, calEnd);
+        assertEventCreatedInRS(appointment.getId().getUniqueId(), 2, "UPDATE_EVENT", "TENT", calStartString, calEndString);
     }
 
     @Title("Reschedule Appointment RS Test")
     @Test
     public void testRescheduleAppointmentRS() throws Exception {
-        assertEventCreatedInRS(appointment.getId().getUniqueId(), 1, "CREATE_EVENT", "BUSY", calStart, calEnd);
+        assertEventCreatedInRS(appointment.getId().getUniqueId(), 1, "CREATE_EVENT", "BUSY", calStartString, calEndString);
 
         //shifting appointment by 1 hour
         calStart.add(Calendar.HOUR, 1);
@@ -97,16 +102,17 @@ public class CrudAppointmentsRSTest extends BaseTest {
         appointment.setEnd(calEnd.getTime());
         appointment.update(ConflictResolutionMode.AlwaysOverwrite);
 
-        assertEventCreatedInRS(appointment.getId().getUniqueId(), 2, "MOVE_EVENT", "BUSY", calStart, calEnd);
+        assertEventCreatedInRS(appointment.getId().getUniqueId(), 2, "MOVE_EVENT", "BUSY",
+                calStart.getTime().toInstant().toString(), calEnd.getTime().toInstant().toString());
     }
 
     @Title("Delete Appointment RS Test")
     @Test
     public void testDeleteAppointmentRS() throws Exception {
-        assertEventCreatedInRS(appointment.getId().getUniqueId(), 1, "CREATE_EVENT", "BUSY", calStart, calEnd);
+        assertEventCreatedInRS(appointment.getId().getUniqueId(), 1, "CREATE_EVENT", "BUSY", calStartString, calEndString);
 
         appointment.delete(DeleteMode.SoftDelete);
 
-        assertEventCreatedInRS(appointment.getId().getUniqueId(), 2, "DELETE_EVENT", "BUSY", calStart, calEnd);
+        assertEventCreatedInRS(appointment.getId().getUniqueId(), 2, "DELETE_EVENT", "BUSY", calStartString, calEndString);
     }
 }

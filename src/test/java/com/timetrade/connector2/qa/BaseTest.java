@@ -4,7 +4,6 @@ import com.timetrade.connector2.qa.config.Config;
 import com.timetrade.connector2.qa.model.UserOfAccount;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
-import microsoft.exchange.webservices.data.core.exception.service.local.ServiceLocalException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.BeforeSuite;
@@ -13,13 +12,17 @@ import ru.yandex.qatools.allure.annotations.Step;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
+import java.util.TimeZone;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 /**
  * Created by oleksandr.kydiuk on Oct, 2018
@@ -34,6 +37,7 @@ public class BaseTest {
 
     private static final String testUsername = Config.properties.getProperty("user");
     private static final String testAccountId = Config.properties.getProperty("account");
+    private static int attempts;
 
     UserOfAccount userOfAccount = new UserOfAccount(testUsername, testAccountId);
 
@@ -41,6 +45,7 @@ public class BaseTest {
     @BeforeSuite
     public void subscribeUser() throws InterruptedException {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+        if (attempts == 3) fail("User isn't subscribed after " + attempts + " attempts.");
 
         Response response = given()
                 .get(PLAT01_EWS + userOfAccount.getAccountId() + "/subscriptions")
@@ -67,6 +72,8 @@ public class BaseTest {
                     .then()
                     .assertThat().statusCode(202);
             Thread.sleep(3000);
+            attempts += 1;
+            subscribeUser();
         }
     }
 
@@ -171,7 +178,7 @@ public class BaseTest {
     }
 
     @Step
-    void assertEventCreatedInRS(String appointmentId, int index, String eventType, String status, Calendar calStart, Calendar calEnd) throws InterruptedException, ServiceLocalException {
+    void assertEventCreatedInRS(String appointmentId, int index, String eventType, String status, String calStart, String calEnd) throws InterruptedException {
         logger.info("Querying RS service for created slot. Url: " + PLAT01_RS + userOfAccount.getAccountId() + "/getFullEventDetails?id=" + appointmentId);
 
         List list = null;
@@ -189,16 +196,13 @@ public class BaseTest {
             Thread.sleep(1000);
         }
 
-        String timeStart = calStart.getTime().toInstant().toString();
-        String timeEnd = calEnd.getTime().toInstant().toString();
-
         assertThat("There response length should be - " + index + ", but it's - " + list.size(), list.size(), is(equalTo(index)));
         assertThat("The event has wrong eventType", ((HashMap) list.get(index - 1)).get("eventType"), is(equalTo(eventType)));
         assertThat("The event has wrong status", ((HashMap) list.get(index - 1)).get("status"), is(equalTo(status)));
         assertThat("The event has wrong username", ((HashMap) list.get(index - 1)).get("resource"), is(equalTo(userOfAccount.getUsername())));
         assertThat("The event has wrong accountId", ((HashMap) list.get(index - 1)).get("licensee"), is(equalTo(userOfAccount.getAccountId())));
-        assertThat("The event has wrong startTime", ((HashMap) list.get(index - 1)).get("startTime"), is(equalTo(timeStart.substring(0, timeStart.length() - 5))));
-        assertThat("The event has wrong endTime", ((HashMap) list.get(index - 1)).get("endTime"), is(equalTo(timeEnd.substring(0, timeEnd.length() - 5))));
+        assertTrue(((String) ((HashMap) list.get(index - 1)).get("startTime")).contains(calStart.substring(0, 18)), "The event has wrong startTime");
+        assertTrue(((String) ((HashMap) list.get(index - 1)).get("endTime")).contains(calEnd.substring(0, 18)), "The event has wrong startTime");
     }
 
     String bounderyStartTime() {
