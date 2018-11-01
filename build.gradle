@@ -8,6 +8,7 @@ apply plugin: 'maven'
 
 group 'com.timetrade'
 version '1.0-SNAPSHOT'
+defaultTasks 'clean', 'test'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -16,7 +17,13 @@ ext {
     msEWSApiVersion = '2.0'
 }
 
+configurations {
+    agent
+}
+
 dependencies {
+    agent "org.aspectj:aspectjweaver:${aspectjVersion}"
+
     //ews api
     compile group: 'com.microsoft.ews-java-api', name: 'ews-java-api', version: msEWSApiVersion
 
@@ -29,6 +36,13 @@ dependencies {
     testCompile "ru.yandex.qatools.allure:allure-testng-adaptor:${allureVersion}"
 }
 
+test.doFirst {
+    jvmArgs "-javaagent:${configurations.agent.singleFile}"
+}
+
 test {
-    useTestNG()
+    useTestNG() {
+        // runlist to executed. path is relative to current folder
+        suites 'src/test/resources/suites/crud_restapi_tests.xml'
+    }
 }

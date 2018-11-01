@@ -16,6 +16,7 @@ import microsoft.exchange.webservices.data.property.complex.time.OlsonTimeZoneDe
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.testng.annotations.Test;
+import ru.yandex.qatools.allure.annotations.Title;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -29,6 +30,7 @@ public class CreateAppointmentsInBatchTest extends BaseTest {
 
     private static final Log logger = LogFactory.getLog(CreateAppointmentsInBatchTest.class);
 
+    @Title("Create Appointments in Batch")
     @Test
     public void testCreateAppointmentsInBatch() throws Exception {
         Calendar calStart = Calendar.getInstance();

@@ -5,6 +5,7 @@ import microsoft.exchange.webservices.data.core.enumeration.property.LegacyFreeB
 import microsoft.exchange.webservices.data.core.enumeration.service.ConflictResolutionMode;
 import microsoft.exchange.webservices.data.core.enumeration.service.DeleteMode;
 import microsoft.exchange.webservices.data.core.enumeration.service.SendInvitationsMode;
+import microsoft.exchange.webservices.data.core.exception.service.local.ServiceLocalException;
 import microsoft.exchange.webservices.data.core.service.item.Appointment;
 import microsoft.exchange.webservices.data.property.complex.MessageBody;
 import microsoft.exchange.webservices.data.property.complex.time.OlsonTimeZoneDefinition;
@@ -22,12 +23,14 @@ import java.util.TimeZone;
 /**
  * Created by oleksandr.kydiuk on Oct, 2018
  */
-public class CrudAppointmentsTest extends BaseTest {
+public class CrudAppointmentsRSTest extends BaseTest {
 
-    private static final Log logger = LogFactory.getLog(CrudAppointmentsTest.class);
+    private static final Log logger = LogFactory.getLog(CrudAppointmentsRSTest.class);
     private Appointment appointment;
     private Calendar calStart;
     private Calendar calEnd;
+    private String calStartString;
+    private String calEndString;
 
     @Step
     @BeforeMethod
@@ -41,13 +44,16 @@ public class CrudAppointmentsTest extends BaseTest {
         calEnd.set(Calendar.MINUTE, 29);
         calEnd.set(Calendar.SECOND, 59);
 
+        calStartString = calStart.getTime().toInstant().toString();
+        calEndString = calEnd.getTime().toInstant().toString();
+
         assertSlotIsFree(11);
 
-        logger.info("Creating appointment with startTime " + calStart.getTime().toString() + "and endTime " + calEnd.getTime().toString());
+        logger.info("Creating appointment with startTime " + calStartString + "and endTime " + calEndString);
 
         TTExchangeService service = new TTExchangeService(userOfAccount);
         appointment = new Appointment(service);
-        appointment.setSubject("Dentist Appointment to GA 333");
+        appointment.setSubject("Dentist Appointment to RS 333");
         appointment.setBody(new MessageBody("The appointment is with Dr. Smith."));
         appointment.setStart(calStart.getTime());
         appointment.setStartTimeZone(new OlsonTimeZoneDefinition(TimeZone.getTimeZone("UTC")));
@@ -57,37 +63,37 @@ public class CrudAppointmentsTest extends BaseTest {
 
     @Step
     @AfterMethod
-    public void tearDown(){
+    public void tearDown() {
         try {
             appointment.delete(DeleteMode.HardDelete);
             assertSlotIsFree(11);
+            Thread.sleep(2000);
         } catch (Exception e) {
             logger.info("Deleting appointment after test error. Message: " + e.getMessage());
         }
     }
 
-    @Title("Create Appointment GA Test")
+    @Title("Create Appointment RS Test")
     @Test
-    public void testCreateAppointment() throws InterruptedException {
-        assertSlotIsBooked(11);
+    public void testCreateAppointmentRS() throws ServiceLocalException, InterruptedException {
+        assertEventCreatedInRS(appointment.getId().getUniqueId(), 1, "CREATE_EVENT", "BUSY", calStartString, calEndString);
     }
 
-    @Title("Update Appointment GA Test")
+    @Title("Update Appointment RS Test")
     @Test
-    public void testUpdateAppointment() throws Exception {
-        assertSlotIsBooked(11);
+    public void testUpdateAppointmentRS() throws Exception {
+        assertEventCreatedInRS(appointment.getId().getUniqueId(), 1, "CREATE_EVENT", "BUSY", calStartString, calEndString);
 
         appointment.setLegacyFreeBusyStatus(LegacyFreeBusyStatus.Tentative);
         appointment.update(ConflictResolutionMode.AlwaysOverwrite);
 
-        assertSlotIsTentative(11);
-
+        assertEventCreatedInRS(appointment.getId().getUniqueId(), 2, "UPDATE_EVENT", "TENT", calStartString, calEndString);
     }
 
-    @Title("Reschedule Appointment GA Test")
+    @Title("Reschedule Appointment RS Test")
     @Test
-    public void testRescheduleAppointment() throws Exception {
-        assertSlotIsBooked(11);
+    public void testRescheduleAppointmentRS() throws Exception {
+        assertEventCreatedInRS(appointment.getId().getUniqueId(), 1, "CREATE_EVENT", "BUSY", calStartString, calEndString);
 
         //shifting appointment by 1 hour
         calStart.add(Calendar.HOUR, 1);
@@ -96,25 +102,17 @@ public class CrudAppointmentsTest extends BaseTest {
         appointment.setEnd(calEnd.getTime());
         appointment.update(ConflictResolutionMode.AlwaysOverwrite);
 
-        assertSlotIsBooked(12);
-
-        //shifting appointment backwards
-        calStart.add(Calendar.HOUR, -1);
-        calEnd.add(Calendar.HOUR, -1);
-        appointment.setStart(calStart.getTime());
-        appointment.setEnd(calEnd.getTime());
-        appointment.update(ConflictResolutionMode.AlwaysOverwrite);
-
-        assertSlotIsBooked(11);
+        assertEventCreatedInRS(appointment.getId().getUniqueId(), 2, "MOVE_EVENT", "BUSY",
+                calStart.getTime().toInstant().toString(), calEnd.getTime().toInstant().toString());
     }
 
-    @Title("Delete Appointment GA Test")
+    @Title("Delete Appointment RS Test")
     @Test
-    public void testDeleteAppointment() throws Exception {
-        assertSlotIsBooked(11);
+    public void testDeleteAppointmentRS() throws Exception {
+        assertEventCreatedInRS(appointment.getId().getUniqueId(), 1, "CREATE_EVENT", "BUSY", calStartString, calEndString);
 
         appointment.delete(DeleteMode.SoftDelete);
 
-        assertSlotIsFree(11);
+        assertEventCreatedInRS(appointment.getId().getUniqueId(), 2, "DELETE_EVENT", "BUSY", calStartString, calEndString);
     }
 }
